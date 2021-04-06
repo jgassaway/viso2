@@ -147,11 +147,13 @@ protected:
     if (!last_update_time_.isZero())
     {
       double delta_t = (timestamp - last_update_time_).toSec();
-      if (delta_t)
+      if (delta_t )
       {
         odometry_msg.twist.twist.linear.x = delta_base_transform.getOrigin().getX() / delta_t;
         odometry_msg.twist.twist.linear.y = delta_base_transform.getOrigin().getY() / delta_t;
         odometry_msg.twist.twist.linear.z = delta_base_transform.getOrigin().getZ() / delta_t;
+        ROS_INFO("Time delta: %.1f ms, Trans X[%f] Vel X[%f]",
+                 delta_t * 1000.0,  delta_base_transform.getOrigin().getX() , odometry_msg.twist.twist.linear.x);
         tf::Quaternion delta_rot = delta_base_transform.getRotation();
         tfScalar angle = delta_rot.getAngle();
         tf::Vector3 axis = delta_rot.getAxis();

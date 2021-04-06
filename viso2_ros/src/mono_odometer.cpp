@@ -26,8 +26,11 @@ private:
   image_transport::CameraSubscriber camera_sub_;
 
   ros::Publisher info_pub_;
+  ros::Publisher image_pub_;
 
   bool replace_;
+
+  int max_y;
 
 public:
 
@@ -37,11 +40,17 @@ public:
     ros::NodeHandle local_nh("~");
     odometry_params::loadParams(local_nh, visual_odometer_params_);
 
+    max_y = 600;
+    local_nh.getParam("max_y", max_y);
+
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     camera_sub_ = it.subscribeCamera("image", 1, &MonoOdometer::imageCallback, this, transport);
 
     info_pub_ = local_nh.advertise<VisoInfo>("info", 1);
+
+    // (jcg) Output matches debug image
+    image_pub_ = local_nh.advertise<sensor_msgs::Image>("image_matches", 10);
   }
 
 protected:
@@ -71,20 +80,26 @@ protected:
                       visual_odometer_params_);
     }
 
+    cv_bridge::CvImageConstPtr masked_cv_ptr;
+    masked_cv_ptr = cv_bridge::toCvShare(image_msg, sensor_msgs::image_encodings::MONO8);
+    cv::Mat_<uint8_t> gray(masked_cv_ptr->image);
+    maskImage(gray, max_y);
+
     // convert image if necessary
     uint8_t *image_data;
     int step;
     cv_bridge::CvImageConstPtr cv_ptr;
-    if (image_msg->encoding == sensor_msgs::image_encodings::MONO8)
-    {
-      image_data = const_cast<uint8_t*>(&(image_msg->data[0]));
-      step = image_msg->step;
-    }
-    else
+    // TODO: Handle Mono8 directly in the future
+    // if (image_msg->encoding == sensor_msgs::image_encodings::MONO8)
+    // {
+    //   image_data = const_cast<uint8_t*>(&(image_msg->data[0]));
+    //   step = image_msg->step;
+    // }
+    // else
     {
       cv_ptr = cv_bridge::toCvShare(image_msg, sensor_msgs::image_encodings::MONO8);
-      image_data = cv_ptr->image.data;
-      step = cv_ptr->image.step[0];
+      image_data = masked_cv_ptr->image.data;
+      step = masked_cv_ptr->image.step[0];
     }
 
     // run the odometer
@@ -138,8 +153,71 @@ protected:
       ros::WallDuration time_elapsed = ros::WallTime::now() - start_time;
       info_msg.runtime = time_elapsed.toSec();
       info_pub_.publish(info_msg);
+
+
+      cv_bridge::CvImagePtr cv_ptr;
+      try
+      {
+        cv_ptr = cv_bridge::toCvCopy(image_msg, sensor_msgs::image_encodings::BGR8);
+      }
+      catch (const cv_bridge::Exception& e)
+      {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+      }
+
+      cv::Mat_<cv::Vec3b> color(cv_ptr->image);
+      std::vector<Matcher::p_match> matches = visual_odometer_->getMatches();
+      maskImage(color, max_y);
+      drawMatches(color, matches);
+
+      image_pub_.publish(cv_ptr->toImageMsg());
     }
   }
+
+  // (jcg) As a simple hack, mask out requested regions of image
+
+  void maskImage(cv::Mat& mat, int max_y)
+  {
+    // Mask out portions of image beyond min/max x and y
+    // Only max_y is defined at the moment
+    int height = std::min(mat.rows, std::max(0, mat.rows - max_y));
+    cv::Rect roi(0, max_y,mat.cols, height); // x,y,width,height
+    cv::Mat sub_mat(mat, roi);
+
+    if (mat.channels() == 1)
+    {
+      sub_mat.setTo(cv::Scalar(0));
+    }
+    else if(mat.channels() == 3)
+    {
+      sub_mat.setTo(cv::Scalar(0,0,0));
+    }
+    else
+    {
+      ROS_ERROR("Had non-standard number of channels (not 1 or 3)");
+    }
+  }
+
+  void drawMatches(cv::Mat_<cv::Vec3b>& color, std::vector<Matcher::p_match> matches)
+  {
+    // Test, draw line along center of image
+    for (const auto match : matches)
+    {
+      // Assume for mono that left image previous and current values are filled out
+      cv::line(color, 
+              cv::Point(match.u1p, match.v1p),// Match in prev. left image
+              cv::Point(match.u1c, match.v1c),// Match in current left image
+              cv::Scalar(255,0,0), // Red
+              1, // Thickness
+              cv::LINE_8); // Line type
+      // cv::Vec3b& bgr = color(color.rows/2.0, x);
+      // bgr[0] = static_cast<uint8_t>(25);
+      // bgr[1] = static_cast<uint8_t>(233);
+      // bgr[2] = static_cast<uint8_t>(75);
+    }
+  }
+
 };
 
 } // end of namespace
