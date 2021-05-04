@@ -4,8 +4,8 @@
   <arg name = "resolution" default = "full"/>
   <arg name = "stereo" default = "stereo_down"/>
   <arg name = "camera" default = "/stereo_down"/>
-  <arg name = "enable_decimate_x1" default = "true"/>
-  <arg name = "enable_decimate_x2" default = "false"/>
+  <arg name = "enable_decimate_x1" default = "false"/>
+  <arg name = "enable_decimate_x2" default = "true"/>
   <arg name = "enable_decimate_x4" default = "false"/>
 
   <!-- Parameters -->
@@ -17,10 +17,10 @@
   <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/illetes/2021_03_18/12_33_24/images_2021-03-18-12-33-25_0.bag"/> -->
 
   <!-- Cala Lliteres. No es un bon survey però funciona -->
-  <arg name = "bagfile" default = "/home/uib/bagfiles/cala_lliteres/2020_07_23_cala_lliteres/15_51_42/images_2020-07-23-15-51-43_0.bag
+  <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/cala_lliteres/2020_07_23_cala_lliteres/15_51_42/images_2020-07-23-15-51-43_0.bag
                                     /home/uib/bagfiles/cala_lliteres/2020_07_23_cala_lliteres/15_51_42/images_2020-07-23-16-02-04_1.bag
                                     /home/uib/bagfiles/cala_lliteres/2020_07_23_cala_lliteres/15_51_42/images_2020-07-23-16-12-25_2.bag
-                                    /home/uib/bagfiles/cala_lliteres/2020_07_23_cala_lliteres/15_51_42/images_2020-07-23-16-22-45_3.bag"/>
+                                    /home/uib/bagfiles/cala_lliteres/2020_07_23_cala_lliteres/15_51_42/images_2020-07-23-16-22-45_3.bag"/> -->
 
   <!-- Bendinat hivern. Bon dataset amb molt de features però no funciona a l'odometre no se perquè -->
   <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/bendinat/12_24_51/images_2021-01-19-12-31-10_1.bag" /> -->
@@ -36,15 +36,16 @@
                                   /home/uib/bagfiles/bendinat/2020_07_21/17_14_56/images_2020-07-21-18-36-23_8.bag" /> -->
 
 
-  <!-- Portals. Es suposa que es un bon dataset però no dona molt de features i peta. -->
-  <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-14-41-06_0.bag
+  <!-- Portals. El millor dataset ever. -->
+  <arg name = "bagfile" default = "/home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-14-41-06_0.bag
                                     /home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-14-47-26_1.bag
                                     /home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-14-53-45_2.bag
                                     /home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-15-00-04_3.bag
                                     /home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-15-06-23_4.bag
-                                    /home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-15-12-43_5.bag
-                                    /home/uib/bagfiles/portals/2021_02_25/14_41_06/topics_2021-02-25-14-41-52_0.bag"/> -->
+                                    /home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-15-12-43_5.bag"/>
+                                    <!-- /home/uib/bagfiles/portals/2021_02_25/14_41_06/topics_2021-02-25-14-41-52_0.bag -->
 
+  <!-- Colonia de Sant Jordi -->
   <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/colonia_sant_jordi/2020_11_03/15_51_55/images_2020-11-03-15-51-55_0.bag
                                   /home/uib/bagfiles/colonia_sant_jordi/2020_11_03/15_51_55/images_2020-11-03-15-58-15_1.bag
                                   /home/uib/bagfiles/colonia_sant_jordi/2020_11_03/15_51_55/images_2020-11-03-16-04-34_2.bag
@@ -56,7 +57,7 @@
                                   /home/uib/bagfiles/colonia_sant_jordi/2020_11_03/15_51_55/images_2020-11-03-16-42-30_8.bag"/> -->
 
 
-  <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/colonia_sant_jordi/2020_11_03/15_51_55/images_2020-11-03-16-10-54_3.bag"/> -->
+  <!-- <arg name = "bagfile" default = "/home/uib/bagfiles/portals/2021_02_25/14_41_06/images_2021-02-25-15-00-04_3.bag"/> -->
 
 
   <!-- Play the bagfile -->
@@ -73,10 +74,11 @@
     </include>
   </group>
 
-  <!-- Static TF's -->
+  <!-- Publish Static Transforms -->
   <node pkg="tf" type="static_transform_publisher" name="turbot_to_stereo_stick" args="0.4 0.0 0.8 0.0 0.0 0.0 /turbot/base_link /turbot/stereo_stick 30" />
   <node pkg="tf" type="static_transform_publisher" name="stereo_stick_to_stereo_base" args="0.0 0.0 0.0 1.57 0.0 1.57 /turbot/stereo_stick /turbot/stereo_down/base 30" />
   <node pkg="tf" type="static_transform_publisher" name="stereo_base_to_stereo" args="0.0 0.0 0.0 0.0 0.0 -1.57 /turbot/stereo_down/base /turbot/stereo_down 30" />
+  <node pkg="tf" type="static_transform_publisher" name="stereo_to_left" args="-0.06 0.0 0.0 0.0 0.0 0.0 /turbot/stereo_down /turbot/stereo_down/left_optical 30" />
 
   <!-- Viso2 -->
   <node pkg = "viso2_ros" type = "stereo_odometer" name = "stereo_odometer" output = "screen" if = "$(eval enable_decimate_x1 == true)">
@@ -84,6 +86,7 @@
     <remap from = "image" to = "image_rect"/>
     <param name = "queue_size" value = "70"/>
     <param name = "base_link_frame_id" value = "turbot/base_link"/>
+    <param name = "sensor_frame_id" value = "turbot/stereo_down/left_optical"/> <!-- NOU 04/05/2021-->
   </node>
 
   <node pkg = "viso2_ros" type = "stereo_odometer" name = "stereo_odometer" output = "screen" if = "$(eval enable_decimate_x2 == true)">
@@ -93,6 +96,7 @@
     <remap from = "image" to = "image_rect"/>
     <param name = "queue_size" value = "70"/>
     <param name = "base_link_frame_id" value = "turbot/base_link"/>
+    <param name = "sensor_frame_id" value = "turbot/stereo_down/left_optical"/> <!-- NOU 04/05/2021-->
   </node>
 
   <node pkg = "viso2_ros" type = "stereo_odometer" name = "stereo_odometer" output = "screen" if = "$(eval enable_decimate_x4 == true)">
@@ -102,6 +106,7 @@
     <remap from = "image" to = "image_rect"/>
     <param name = "queue_size" value = "70"/>
     <param name = "base_link_frame_id" value = "turbot/base_link"/>
+    <param name = "sensor_frame_id" value = "turbot/stereo_down/left_optical"/> <!-- NOU 04/05/2021-->
   </node>
 
 

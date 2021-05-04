@@ -166,7 +166,7 @@ public:
   // and you want to cancel the change of (unknown) camera gain.
   float getGain (std::vector<int32_t> inliers);
 
-  void matchFeaturesSIFT(Mat left_img, Mat right_img, bool no_matching) ; //BMNF 03/03/2021: Create
+  void matchFeaturesSIFT(Mat left_img, Mat right_img, bool no_matching) ; //BMNF 03/03/2021: Created
 
 private:
 
